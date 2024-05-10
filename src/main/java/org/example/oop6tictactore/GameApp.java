@@ -16,8 +16,6 @@ public class GameApp extends Application {
     private char currentPlayer;
     private char computerPlayer;
 
-    private Stage currentStage;
-
     @Override
     public void start(Stage stage) throws IOException {
         VBox root = new VBox(10); // Vertical layout with 10px spacing
@@ -55,8 +53,6 @@ public class GameApp extends Application {
         Button chooseX = new Button("Player X");
         Button chooseO = new Button("Player O");
 
-
-        // Set actions for choosing player
         chooseX.setOnAction(event -> {
             System.out.println("Player X button is clicked");
             currentPlayer = 'X';
@@ -69,7 +65,6 @@ public class GameApp extends Application {
             computerPlayer = 'X';
         });
 
-        // Create an HBox to hold the choice buttons
         HBox buttonBox = new HBox(20, chooseX, chooseO);
         buttonBox.setAlignment(Pos.CENTER);
 
