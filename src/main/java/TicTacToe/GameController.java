@@ -1,4 +1,4 @@
-package org.example.oop6tictactore;
+package TicTacToe;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
