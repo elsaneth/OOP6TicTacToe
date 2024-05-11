@@ -128,7 +128,7 @@ public class GameApp extends Application {
             cell.setText(String.valueOf(currentPlayer));
         }
         if (isWinner() || isFull()) {
-            showWinAlert();
+            showGameOverAlert();
         } else {
             currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
             makeComputerTurn();
@@ -136,6 +136,9 @@ public class GameApp extends Application {
     }
 
     private void makeComputerTurn() throws IOException {
+        // TODO: 1. Arvuti eelistab teatud käike, mis on taktikaliselt paremad – mõtelge ise läbi.
+        // TODO: 2. Arvuti käib mängu võitva käigu, kui selline laual leidub: arvutil on kolm märki juba reas ja arvuti kord on käia
+        // TODO: 3. Sarnaselt suudab arvuti blokeerida kasutaja võitvat käiku: kasutajal on kolm märki juba reas, aga arvuti kord on käia.
         System.out.println("Fill cell action computer");
         Random random = new Random();
         int row = random.nextInt(4);
@@ -152,7 +155,7 @@ public class GameApp extends Application {
         System.out.println("Current Player: " + currentPlayer);
         button.setText(String.valueOf(currentPlayer));
         if (isWinner() || isFull()) {
-            showWinAlert();
+            showGameOverAlert();
             gameBoard.getChildren().removeAll(button);
         }
         // toggles between X and O player
@@ -245,7 +248,7 @@ public class GameApp extends Application {
         }
     }
 
-    public void showWinAlert() throws IOException {
+    public void showGameOverAlert() throws IOException {
         Alert winAlert = new Alert(Alert.AlertType.CONFIRMATION);
         winAlert.setTitle("Game Over");
         if (isFull()) {
