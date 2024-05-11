@@ -13,14 +13,15 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Random;
 
 public class GameApp extends Application {
     private char currentPlayer;
     private char computerPlayer;
+    private char userPlayer;
     private Label whosTurnTitle;
     private String player;
     private GridPane gameBoard = new GridPane();
-
     private Button[][] gameBoardArray = null;
     @Override
     public void start(Stage stage) throws IOException {
@@ -58,23 +59,25 @@ public class GameApp extends Application {
         chooseX.setOnAction(event -> {
             System.out.println("Player X button is clicked");
             try {
+                currentPlayer = 'X';
+                userPlayer = currentPlayer;
+                computerPlayer = 'O';
                 gameBoardView(stage);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            currentPlayer = 'X';
-            computerPlayer = 'O';
         });
 
         chooseO.setOnAction(event -> {
             System.out.println("Player O button is clicked");
             try {
+                currentPlayer = 'O';
+                userPlayer = currentPlayer;
+                computerPlayer = 'X';
                 gameBoardView(stage);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            currentPlayer = 'O';
-            computerPlayer = 'X';
         });
 
         HBox buttonBox = new HBox(20, chooseX, chooseO);
@@ -89,28 +92,20 @@ public class GameApp extends Application {
     }
 
     public void gameBoardView(Stage stage) throws IOException {
-        whosTurnTitle = new Label("It's your turn.");
+        whosTurnTitle = new Label("It's your turn: ");
         whosTurnTitle.setStyle("-fx-font-size: 18px;");
         gameBoard.setAlignment(Pos.CENTER);
 
-        for (int row = 0; row < 4; row ++) {
+        for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
                 Button cell = new Button();
                 cell.setMinSize(50, 50);
-                cell.setOnAction(event -> {
+                cell.setOnAction(event ->  {
                     if (cell.getText().isEmpty()) {
-                        if (currentPlayer != computerPlayer) {
-                            try {
-                                fillCell(cell);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            try {
-                                makeComputerTurn(cell);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
+                        try {
+                            fillCell(cell);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 });
@@ -127,39 +122,45 @@ public class GameApp extends Application {
     }
 
     private void fillCell(Button cell) throws IOException {
-        System.out.println("Fill cell action user");
-        cell.setText(String.valueOf(currentPlayer));
-        if (isWinner()) {
-            showWinAlert();
+        System.out.println("Current player: " + currentPlayer);
+        if (currentPlayer != computerPlayer) {
+            System.out.println("Fill cell action user");
+            cell.setText(String.valueOf(currentPlayer));
         }
-        // toggles between X and O player
-        currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
-
-        if (currentPlayer == computerPlayer) {
-            whosTurnTitle.setText("It's computer's turn.");
+        if (isWinner() || isFull()) {
+            showWinAlert();
         } else {
-            whosTurnTitle.setText("It's your turn.");
+            currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+            makeComputerTurn();
         }
     }
 
-    private void makeComputerTurn(Button cell) throws IOException {
+    private void makeComputerTurn() throws IOException {
         System.out.println("Fill cell action computer");
-        cell.setText(String.valueOf(currentPlayer));
-        if (isWinner()) {
+        Random random = new Random();
+        int row = random.nextInt(4);
+        int col = random.nextInt(4);
+        Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+        while (!button.getText().isEmpty()) {
+            row = random.nextInt(4);
+            col = random.nextInt(4);
+            button = (Button) gameBoard.getChildren().get(row * 4 + col);
+        }
+        System.out.println("Replacing button.");
+        System.out.println("Row: " + row + "Col: " + col + "Button: " + button);
+        System.out.println("Button Text: " + button.getText());
+        System.out.println("Current Player: " + currentPlayer);
+        button.setText(String.valueOf(currentPlayer));
+        if (isWinner() || isFull()) {
             showWinAlert();
+            gameBoard.getChildren().removeAll(button);
         }
         // toggles between X and O player
         currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
-
-        if (currentPlayer == computerPlayer) {
-            whosTurnTitle.setText("It's computer's turn.");
-        } else {
-            whosTurnTitle.setText("It's your turn.");
-        }
     }
 
     private boolean isWinner() {
-        initializeGridPaneArray();
+        initializeGameboardArray();
         boolean isWinner = false;
         player = "You";
 
@@ -173,9 +174,11 @@ public class GameApp extends Application {
                 if (currentPlayer == computerPlayer) {
                     player = "Computer";
                 }
+                whosTurnTitle.setText(player + " won");
                 System.out.println(player + " won");
                 return isWinner;
             }
+
             // check columns
             if (gameBoardArray[0][i].getText().equals(gameBoardArray[1][i].getText()) &&
                     gameBoardArray[1][i].getText().equals(gameBoardArray[2][i].getText()) &&
@@ -185,6 +188,7 @@ public class GameApp extends Application {
                 if (currentPlayer == computerPlayer) {
                     player = "Computer";
                 }
+                whosTurnTitle.setText(player + " won");
                 System.out.println(player + " won");
                 return isWinner;
             }
@@ -199,6 +203,7 @@ public class GameApp extends Application {
             if (currentPlayer == computerPlayer) {
                 player = "Computer";
             }
+            whosTurnTitle.setText(player + " won");
             System.out.println(player + " won");
             return isWinner;
         }
@@ -212,13 +217,28 @@ public class GameApp extends Application {
             if (currentPlayer == computerPlayer) {
                 player = "Computer";
             }
+            whosTurnTitle.setText(player + " won");
             System.out.println(player + " won");
             return isWinner;
         }
         return isWinner;
     }
 
-    private void initializeGridPaneArray() {
+    public boolean isFull() {
+        initializeGameboardArray();
+        boolean result = true;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (gameBoardArray[i][j].getText().isEmpty()) {
+                    result = false;
+                    return result;
+                }
+            }
+        }
+        return result;
+    }
+
+    private void initializeGameboardArray() {
         this.gameBoardArray = new Button[4][4];
         for (Node button : this.gameBoard.getChildren()) {
             this.gameBoardArray[GridPane.getRowIndex(button)][GridPane.getColumnIndex(button)] = (Button) button;
@@ -228,7 +248,12 @@ public class GameApp extends Application {
     public void showWinAlert() throws IOException {
         Alert winAlert = new Alert(Alert.AlertType.CONFIRMATION);
         winAlert.setTitle("Game Over");
-        winAlert.setHeaderText(player + " won.");
+        if (isFull()) {
+            winAlert.setHeaderText("Boxes full. Nobody won.");
+            whosTurnTitle.setText("Nobody won!");
+        } else {
+            winAlert.setHeaderText(player + " won.");
+        }
         winAlert.setContentText("Would you like to start a new game?");
 
         ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
@@ -244,6 +269,7 @@ public class GameApp extends Application {
             else {
                 System.out.println("Yes button is clicked");
                 Stage newGame = new Stage();
+                gameBoard = new GridPane();
                 start(newGame);
             }
         }
