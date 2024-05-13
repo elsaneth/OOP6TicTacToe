@@ -150,7 +150,7 @@ public class GameApp extends Application {
             }
         }
         if (!isFourthAdded) {
-            addSecondOrThird();
+            addSecondOrThird(currentPlayer);
             if (isWinner() || isFull()) {
                 showGameOverAlert();
             }
@@ -307,7 +307,7 @@ public class GameApp extends Application {
         Button d;
 
         // columns
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i <= 3; i++) {
             row = i;
             a = gameBoardArray[0][i];
             b = gameBoardArray[1][i];
@@ -335,7 +335,7 @@ public class GameApp extends Application {
         }
 
         // rows
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i <= 3; i++) {
             col = i;
             a = gameBoardArray[i][0];
             b = gameBoardArray[i][1];
@@ -434,7 +434,7 @@ public class GameApp extends Application {
         }
     }
 
-    public void addSecondOrThird() {
+    public void addSecondOrThird(char player) {
         isAdded = false;
         int row;
         int col;
@@ -453,14 +453,14 @@ public class GameApp extends Application {
             List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
             List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
             if (filledButtons.stream().map(Button::getText).distinct().count() == 1) {
-                if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
+                if (filledButtons.getFirst().getText().charAt(0) == player) {
                     for (int j = 0; j < 4; j++) {
                         if (buttonColumn.get(j).getText().isEmpty()) {
                             col = j;
                             Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
                             System.out.println("Adding calculated mark to column: ");
                             System.out.println("Row: " + row + " Col: " + col);
-                            button.setText(String.valueOf(currentPlayer));
+                            button.setText(String.valueOf(player));
                             isAdded = true;
                             break;
                         }
@@ -480,14 +480,14 @@ public class GameApp extends Application {
                 List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
                 List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
                 if (filledButtons.stream().map(Button::getText).distinct().count() == 1) {
-                    if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
+                    if (filledButtons.getFirst().getText().charAt(0) == player) {
                         for (int j = 0; j < 4; j++) {
                             if (buttonColumn.get(j).getText().isEmpty()) {
                                 row = j;
                                 Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
                                 System.out.println("Adding calculated mark to row: ");
                                 System.out.println("Row: " + row + " Col: " + col);
-                                button.setText(String.valueOf(currentPlayer));
+                                button.setText(String.valueOf(player));
                                 isAdded = true;
                                 break;
                             }
@@ -506,7 +506,7 @@ public class GameApp extends Application {
             List<Button> buttonDiagonal1 = new ArrayList<>(Arrays.asList(a, b, c, d));
             List<Button> filledButtonsD1 = buttonDiagonal1.stream().filter(button -> !button.getText().isEmpty()).toList();
             if (filledButtonsD1.stream().map(Button::getText).distinct().count() == 1) {
-                if (filledButtonsD1.getFirst().getText().charAt(0) == currentPlayer) {
+                if (filledButtonsD1.getFirst().getText().charAt(0) == player) {
                     for (int j = 0; j < 4; j++) {
                         if (buttonDiagonal1.get(j).getText().isEmpty()) {
                             row = j;
@@ -514,7 +514,7 @@ public class GameApp extends Application {
                             Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
                             System.out.println("Adding calculated diagaonal 1 mark: ");
                             System.out.println("Row: " + row + " Col: " + col);
-                            button.setText(String.valueOf(currentPlayer));
+                            button.setText(String.valueOf(player));
                             isAdded = true;
                             break;
                         }
@@ -541,7 +541,7 @@ public class GameApp extends Application {
                             Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
                             System.out.println("Adding calculated diagaonal 2 mark: ");
                             System.out.println("Row: " + row + " Col: " + col);
-                            button.setText(String.valueOf(currentPlayer));
+                            button.setText(String.valueOf(player));
                             isAdded = true;
                             break;
                         }
