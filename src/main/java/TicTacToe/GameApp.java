@@ -12,8 +12,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameApp extends Application {
     private char currentPlayer;
@@ -23,6 +23,8 @@ public class GameApp extends Application {
     private String player;
     private GridPane gameBoard = new GridPane();
     private Button[][] gameBoardArray = null;
+    Boolean isFourthAdded = false;
+    Boolean isAdded = false;
     @Override
     public void start(Stage stage) throws IOException {
         VBox root = new VBox(10);
@@ -136,27 +138,37 @@ public class GameApp extends Application {
     }
 
     private void makeComputerTurn() throws IOException {
-        // TODO: 1. Arvuti eelistab teatud käike, mis on taktikaliselt paremad – mõtelge ise läbi.
-        // TODO: 2. Arvuti käib mängu võitva käigu, kui selline laual leidub: arvutil on kolm märki juba reas ja arvuti kord on käia
-        // TODO: 3. Sarnaselt suudab arvuti blokeerida kasutaja võitvat käiku: kasutajal on kolm märki juba reas, aga arvuti kord on käia.
         System.out.println("Fill cell action computer");
-        Random random = new Random();
-        int row = random.nextInt(4);
-        int col = random.nextInt(4);
-        Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
-        while (!button.getText().isEmpty()) {
-            row = random.nextInt(4);
-            col = random.nextInt(4);
-            button = (Button) gameBoard.getChildren().get(row * 4 + col);
-        }
-        System.out.println("Replacing button.");
-        System.out.println("Row: " + row + "Col: " + col + "Button: " + button);
-        System.out.println("Button Text: " + button.getText());
-        System.out.println("Current Player: " + currentPlayer);
-        button.setText(String.valueOf(currentPlayer));
+        setFourthSameMark(currentPlayer);
         if (isWinner() || isFull()) {
             showGameOverAlert();
-            gameBoard.getChildren().removeAll(button);
+        }
+        if (!isFourthAdded) {
+            setFourthSameMark(userPlayer);
+            if (isWinner() || isFull()) {
+                showGameOverAlert();
+            }
+        }
+        if (!isFourthAdded) {
+            addSecondOrThird();
+            if (isWinner() || isFull()) {
+                showGameOverAlert();
+            }
+        }
+        if (!isFourthAdded && !isAdded) {
+            Random random = new Random();
+            int row = random.nextInt(4);
+            int col = random.nextInt(4);
+            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+            while (!button.getText().isEmpty()) {
+                row = random.nextInt(4);
+                col = random.nextInt(4);
+                button = (Button) gameBoard.getChildren().get(row * 4 + col);
+            }
+            button.setText(String.valueOf(currentPlayer));
+            if (isWinner() || isFull()) {
+                showGameOverAlert();
+            }
         }
         // toggles between X and O player
         currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
@@ -252,8 +264,12 @@ public class GameApp extends Application {
         Alert winAlert = new Alert(Alert.AlertType.CONFIRMATION);
         winAlert.setTitle("Game Over");
         if (isFull()) {
-            winAlert.setHeaderText("Boxes full. Nobody won.");
-            whosTurnTitle.setText("Nobody won!");
+            if (isWinner()) {
+                winAlert.setHeaderText(player + " won.");
+            } else {
+                winAlert.setHeaderText("Boxes full. Nobody won.");
+                whosTurnTitle.setText("Nobody won!");
+            }
         } else {
             winAlert.setHeaderText(player + " won.");
         }
@@ -270,6 +286,9 @@ public class GameApp extends Application {
                 Platform.exit();
             }
             else {
+                Stage currentStage = (Stage) gameBoard.getScene().getWindow();
+                currentStage.close();
+
                 System.out.println("Yes button is clicked");
                 Stage newGame = new Stage();
                 gameBoard = new GridPane();
@@ -277,6 +296,271 @@ public class GameApp extends Application {
             }
         }
     }
+
+    public void setFourthSameMark(char player) {
+        isFourthAdded = false;
+        int row;
+        int col;
+        Button a;
+        Button b;
+        Button c;
+        Button d;
+
+        // columns
+        for (int i = 0; i < 3; i++) {
+            row = i;
+            a = gameBoardArray[0][i];
+            b = gameBoardArray[1][i];
+            c = gameBoardArray[2][i];
+            d = gameBoardArray[3][i];
+            List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
+            if (filledButtons.size() == 3) {
+                if (Objects.equals(filledButtons.get(0).getText(), filledButtons.get(1).getText()) &&
+                        Objects.equals(filledButtons.get(1).getText(), filledButtons.get(2).getText()) &&
+                        filledButtons.get(0).getText().charAt(0) == player) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonColumn.get(j).getText().isEmpty()) {
+                            col = j;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding 4th mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // rows
+        for (int i = 0; i < 3; i++) {
+            col = i;
+            a = gameBoardArray[i][0];
+            b = gameBoardArray[i][1];
+            c = gameBoardArray[i][2];
+            d = gameBoardArray[i][3];
+            List<Button> buttonRow = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtons = new ArrayList<>();
+            for (Button button : buttonRow) {
+                if (!button.getText().isEmpty()) {
+                    filledButtons.add(button);
+                }
+            }
+            if (filledButtons.size() == 3) {
+                if (Objects.equals(filledButtons.get(0).getText(), filledButtons.get(1).getText()) &&
+                        Objects.equals(filledButtons.get(1).getText(), filledButtons.get(2).getText()) &&
+                        filledButtons.get(0).getText().charAt(0) == player) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonRow.get(j).getText().isEmpty()) {
+                            row = j;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding 4th mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // check diagonals top-left to bottom-right
+        if (!isFourthAdded) {
+            a = gameBoardArray[0][0];
+            b = gameBoardArray[1][1];
+            c = gameBoardArray[2][2];
+            d = gameBoardArray[3][3];
+            List<Button> buttonDiagonal1 = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtonsD1 = new ArrayList<>();
+            for (Button button : buttonDiagonal1) {
+                if (!button.getText().isEmpty()) {
+                    filledButtonsD1.add(button);
+                }
+            }
+            if (filledButtonsD1.size() == 3) {
+                if (Objects.equals(filledButtonsD1.get(0).getText(), filledButtonsD1.get(1).getText()) &&
+                        Objects.equals(filledButtonsD1.get(1).getText(), filledButtonsD1.get(2).getText()) &&
+                        filledButtonsD1.get(0).getText().charAt(0) == player) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonDiagonal1.get(j).getText().isEmpty()) {
+                            row = j;
+                            col = row;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding 4th mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // check diagonals bottom-right to top-left
+        if (!isFourthAdded) {
+            a = gameBoardArray[3][0];
+            b = gameBoardArray[2][1];
+            c = gameBoardArray[1][2];
+            d = gameBoardArray[0][3];
+            List<Button> buttonDiagonal2 = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtonsD2 = new ArrayList<>();
+            for (Button button : buttonDiagonal2) {
+                if (!button.getText().isEmpty()) {
+                    filledButtonsD2.add(button);
+                }
+            }
+            if (filledButtonsD2.size() == 3) {
+                if (Objects.equals(filledButtonsD2.get(0).getText(), filledButtonsD2.get(1).getText()) &&
+                        Objects.equals(filledButtonsD2.get(1).getText(), filledButtonsD2.get(2).getText()) &&
+                        filledButtonsD2.get(0).getText().charAt(0) == player) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonDiagonal2.get(j).getText().isEmpty()) {
+                            row = j;
+                            col = (row - 3) * -1;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding 4th mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void addSecondOrThird() {
+        isAdded = false;
+        int row;
+        int col;
+        Button a;
+        Button b;
+        Button c;
+        Button d;
+
+        // columns
+        for (int i = 0; i < 3; i++) {
+            row = i;
+            a = gameBoardArray[0][i];
+            b = gameBoardArray[1][i];
+            c = gameBoardArray[2][i];
+            d = gameBoardArray[3][i];
+            List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
+            if (!filledButtons.isEmpty() && filledButtons.stream().map(Button::getText).distinct().count() == 1) {
+                if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonColumn.get(j).getText().isEmpty()) {
+                            col = j;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding calculated mark to column: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isAdded) {
+            // rows
+            for (int i = 0; i < 3; i++) {
+                col = i;
+                a = gameBoardArray[i][0];
+                b = gameBoardArray[i][1];
+                c = gameBoardArray[i][2];
+                d = gameBoardArray[i][3];
+                List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
+                List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
+                if (!filledButtons.isEmpty() && filledButtons.stream().map(Button::getText).distinct().count() == 1) {
+                    if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
+                        for (int j = 0; j < 4; j++) {
+                            if (buttonColumn.get(j).getText().isEmpty()) {
+                                row = j;
+                                Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                                System.out.println("Adding calculated mark to row: ");
+                                System.out.println("Row: " + row + " Col: " + col);
+                                button.setText(String.valueOf(currentPlayer));
+                                isAdded = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isAdded) {
+            // check diagonals top-left to bottom-right
+            a = gameBoardArray[0][0];
+            b = gameBoardArray[1][1];
+            c = gameBoardArray[2][2];
+            d = gameBoardArray[3][3];
+            List<Button> buttonDiagonal1 = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtonsD1 = new ArrayList<>();
+            for (Button button : buttonDiagonal1) {
+                if (!button.getText().isEmpty()) {
+                    filledButtonsD1.add(button);
+                }
+            }
+            if (filledButtonsD1.stream().map(Button::getText).distinct().count() == 1) {
+                if (filledButtonsD1.getFirst().getText().charAt(0) == currentPlayer) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonDiagonal1.get(j).getText().isEmpty()) {
+                            row = j;
+                            col = row;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding calculated diagaonal 1 mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        if (!isAdded) {
+            // check diagonals bottom-right to top-left
+            a = gameBoardArray[3][0];
+            b = gameBoardArray[2][1];
+            c = gameBoardArray[1][2];
+            d = gameBoardArray[0][3];
+            List<Button> buttonDiagonal2 = new ArrayList<>(Arrays.asList(a, b, c, d));
+            List<Button> filledButtonsD2 = new ArrayList<>();
+            for (Button button : buttonDiagonal2) {
+                if (!button.getText().isEmpty()) {
+                    filledButtonsD2.add(button);
+                }
+            }
+            if (filledButtonsD2.stream().map(Button::getText).distinct().count() == 1) {
+                if (filledButtonsD2.getFirst().getText().charAt(0) == currentPlayer) {
+                    for (int j = 0; j < 4; j++) {
+                        if (buttonDiagonal2.get(j).getText().isEmpty()) {
+                            row = j;
+                            col = (row - 3) * -1;
+                            Button button = (Button) gameBoard.getChildren().get(row * 4 + col);
+                            System.out.println("Adding calculated diagaonal 2 mark: ");
+                            System.out.println("Row: " + row + " Col: " + col);
+                            button.setText(String.valueOf(currentPlayer));
+                            isFourthAdded = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         launch();
