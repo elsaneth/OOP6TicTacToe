@@ -452,7 +452,7 @@ public class GameApp extends Application {
             d = gameBoardArray[3][i];
             List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
             List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
-            if (!filledButtons.isEmpty() && filledButtons.stream().map(Button::getText).distinct().count() == 1) {
+            if (filledButtons.stream().map(Button::getText).distinct().count() == 1) {
                 if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
                     for (int j = 0; j < 4; j++) {
                         if (buttonColumn.get(j).getText().isEmpty()) {
@@ -479,7 +479,7 @@ public class GameApp extends Application {
                 d = gameBoardArray[i][3];
                 List<Button> buttonColumn = new ArrayList<>(Arrays.asList(a, b, c, d));
                 List<Button> filledButtons = buttonColumn.stream().filter(button -> !button.getText().isEmpty()).toList();
-                if (!filledButtons.isEmpty() && filledButtons.stream().map(Button::getText).distinct().count() == 1) {
+                if (filledButtons.stream().map(Button::getText).distinct().count() == 1) {
                     if (filledButtons.getFirst().getText().charAt(0) == currentPlayer) {
                         for (int j = 0; j < 4; j++) {
                             if (buttonColumn.get(j).getText().isEmpty()) {
@@ -504,12 +504,7 @@ public class GameApp extends Application {
             c = gameBoardArray[2][2];
             d = gameBoardArray[3][3];
             List<Button> buttonDiagonal1 = new ArrayList<>(Arrays.asList(a, b, c, d));
-            List<Button> filledButtonsD1 = new ArrayList<>();
-            for (Button button : buttonDiagonal1) {
-                if (!button.getText().isEmpty()) {
-                    filledButtonsD1.add(button);
-                }
-            }
+            List<Button> filledButtonsD1 = buttonDiagonal1.stream().filter(button -> !button.getText().isEmpty()).toList();
             if (filledButtonsD1.stream().map(Button::getText).distinct().count() == 1) {
                 if (filledButtonsD1.getFirst().getText().charAt(0) == currentPlayer) {
                     for (int j = 0; j < 4; j++) {
@@ -520,7 +515,7 @@ public class GameApp extends Application {
                             System.out.println("Adding calculated diagaonal 1 mark: ");
                             System.out.println("Row: " + row + " Col: " + col);
                             button.setText(String.valueOf(currentPlayer));
-                            isFourthAdded = true;
+                            isAdded = true;
                             break;
                         }
                     }
@@ -536,12 +531,7 @@ public class GameApp extends Application {
             c = gameBoardArray[1][2];
             d = gameBoardArray[0][3];
             List<Button> buttonDiagonal2 = new ArrayList<>(Arrays.asList(a, b, c, d));
-            List<Button> filledButtonsD2 = new ArrayList<>();
-            for (Button button : buttonDiagonal2) {
-                if (!button.getText().isEmpty()) {
-                    filledButtonsD2.add(button);
-                }
-            }
+            List<Button> filledButtonsD2 = buttonDiagonal2.stream().filter(button -> !button.getText().isEmpty()).toList();
             if (filledButtonsD2.stream().map(Button::getText).distinct().count() == 1) {
                 if (filledButtonsD2.getFirst().getText().charAt(0) == currentPlayer) {
                     for (int j = 0; j < 4; j++) {
@@ -552,7 +542,7 @@ public class GameApp extends Application {
                             System.out.println("Adding calculated diagaonal 2 mark: ");
                             System.out.println("Row: " + row + " Col: " + col);
                             button.setText(String.valueOf(currentPlayer));
-                            isFourthAdded = true;
+                            isAdded = true;
                             break;
                         }
                     }
